@@ -2,6 +2,7 @@ mod cli;
 mod params;
 mod solidifier;
 mod strings;
+mod warnings;
 
 use anyhow::Result;
 

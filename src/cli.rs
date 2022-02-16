@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use anyhow::{bail, ensure, Result};
+use anyhow::{ensure, Result};
 use clap::{AppSettings, IntoApp, Parser};
 
 use crate::params::{ParamNames, Params};
@@ -27,7 +27,7 @@ struct Cli {
     /// values to refer to columns right-to-left, zero to refer to a special column
     /// whose values are considered unique for each individual record).
     #[clap(short, long)]
-    common: Vec<i32>,
+    shared: Vec<i32>,
 
     /// Allow consolidation when all the input files contain a single column.
     #[clap(long)]
@@ -42,10 +42,11 @@ struct Cli {
     #[clap(long)]
     filler: Option<String>,
 
-    /// Amount of matching data in common columns that should trigger a warning if it's
-    /// not a full match (e.g., "8;ab" vs. "8;ac" would count as 1.5 matching columns).
-    #[clap(long)]
-    warn_similar: Option<f64>,
+    /// Threshold value such that if the aggregated edit distance between the values
+    /// in shared columns of two mismatched records does not exceed it, a warning
+    /// should be displayed (0 means no warnings).
+    #[clap(long, default_value_t = 0)]
+    warn_similar: u32,
 
     /// Warn about any unmatched records.
     #[clap(long)]
@@ -71,23 +72,30 @@ fn check_convert_delimiter(delimiter: char) -> Result<u8> {
     Ok(delimiter as u8)
 }
 
-fn check_similarity_warn_level(similarity: Option<f64>, common_columns: &[i32]) -> Result<()> {
-    let column_count = common_columns.len();
-    match similarity {
-        Some(level) if level <= 0.0 =>
-            bail!("Similarity warn level must be positive, got {level}."),
-        Some(level) if level >= column_count as f64 =>
-            bail!("Similarity warn level must be less than the number of common columns, \
-                   got {level} >= {column_count}."),
-        _ => Ok(()),
+fn check_similarity_warn_level(level: u32, shared_columns: &[i32]) -> Result<()> {
+    if level > 0 {
+        ensure!(
+            !shared_columns.contains(&0),
+            "Non-zero similarity warn level makes no sense \
+             when shared columns contain 0 (the unique column).",
+        );
+        ensure!(
+            !shared_columns.is_empty(),
+            "Non-zero similarity warn level makes no sense when data has no shared columns.",
+        );
     }
+    Ok(())
 }
 
 fn check_inputs(inputs: &[PathBuf], output: &PathBuf) -> Result<()> {
     for input in inputs {
         ensure!(input.exists(), "{} does not exist.", input.display());
         ensure!(input.is_file(), "{} is not a file.", input.display());
-        ensure!(input != output, "{} is used both as an input and as the output.", input.display());
+        ensure!(
+            input != output,
+            "{} is used both as an input and as the output.",
+            input.display(),
+        );
     }
     Ok(())
 }
@@ -100,14 +108,14 @@ pub fn get_params() -> Result<Params> {
     let cli: Cli = Cli::parse();
     let app = Cli::into_app();
     let delimiter = check_convert_delimiter(cli.delimiter)?;
-    check_similarity_warn_level(cli.warn_similar, &cli.common)?;
+    check_similarity_warn_level(cli.warn_similar, &cli.shared)?;
     check_inputs(&cli.inputs, &cli.output)?;
     let filler = convert_filler(cli.filler);
     Ok(Params {
         inputs: cli.inputs,
         output: cli.output,
         delimiter,
-        common_columns: cli.common,
+        shared_columns: cli.shared,
         allow_single_column: cli.single,
         allow_multi_merge: cli.multi,
         filler,

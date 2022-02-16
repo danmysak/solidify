@@ -6,9 +6,10 @@ use std::path::PathBuf;
 
 use anyhow::{Context, ensure, Result};
 use csv;
-use lcs::LcsTable;
+use edit_distance::edit_distance;
 
 use crate::params::Params;
+use crate::warnings::warn;
 
 use keys::{Key, KeyItem};
 use sheet::{Sheet, SheetRow, SheetRowSection};
@@ -42,21 +43,18 @@ fn write(path: &PathBuf, rows: &[Vec<&str>], params: &Params) -> Result<()> {
     Ok(())
 }
 
-fn compare_strings(a: &str, b: &str) -> f64 {
-    let [a, b] = [a, b].map(|side: &str| side.chars().collect::<Vec<_>>());
-    let common = LcsTable::new(&a, &b).longest_common_subsequence().len();
-    let total = a.len() + b.len();
-    if total > 0 { (2 * common) as f64 / total as f64 } else { 1.0 }
+fn compare_strings(a: &str, b: &str) -> u32 {
+    edit_distance(a, b) as u32
 }
 
-fn compare_key_items(a: &KeyItem, b: &KeyItem) -> f64 {
+fn compare_key_items(a: &KeyItem, b: &KeyItem) -> u32 {
     match (a, b) {
         (KeyItem::Data(a), KeyItem::Data(b)) => compare_strings(a, b),
-        _ => if a == b { 1.0 } else { 0.0 },
+        _ => 0,
     }
 }
 
-fn compare_keys(a: &Key, b: &Key) -> f64 {
+fn compare_keys(a: &Key, b: &Key) -> u32 {
     a.into_iter().zip(b.into_iter()).map(|(a, b)| compare_key_items(a, b)).sum()
 }
 
@@ -124,12 +122,20 @@ fn match_and_merge<'a>(sheets: &'a [Sheet], params: &'a Params) -> Result<Vec<Ve
             );
             merged.append(&mut merge(&row_sets.iter().zip(sheets).collect::<Vec<_>>(), params));
             if params.warn_unmatched && row_sets.iter().any(|set| set.len() != row_sets[0].len()) {
-                eprintln!("Unmatched records encountered: {key}.");
+                warn(&[
+                    "Unmatched records encountered",
+                    &key.to_string(),
+                ]);
             }
-            if let Some(similarity_warn_level) = params.similarity_warn_level {
+            if params.similarity_warn_level > 0 {
                 for another_key in by_key.keys() {
-                    if compare_keys(key, another_key) >= similarity_warn_level {
-                        eprintln!("Similar records encountered:\n{key}\n{another_key}\n");
+                    let distance = compare_keys(key, another_key);
+                    if distance <= params.similarity_warn_level {
+                        warn(&[
+                            &format!("Similar records encountered (edit distance = {distance}):"),
+                            &key.to_string(),
+                            &another_key.to_string(),
+                        ]);
                     }
                 }
             }
@@ -153,7 +159,7 @@ fn ensure_proper_delimiter(sheets: &[Sheet], params: &Params) -> Result<()> {
 pub fn solidify(params: &Params) -> Result<()> {
     let mut sheets = vec![];
     for (index, path) in params.inputs.iter().enumerate() {
-        sheets.push(Sheet::new(read(path, &params)?, &params.common_columns, index).with_context(
+        sheets.push(Sheet::new(read(path, &params)?, &params.shared_columns, index).with_context(
             || format!("Could not process {}.", path.display())
         )?);
     }

@@ -7,5 +7,5 @@ edition = "2021"
 anyhow = "1.0"
 clap = { version = "3.0", features = ["derive"] }
 csv = "1.1"
-lcs = "0.2"
+edit-distance = "2.1"
 num = "0.4"

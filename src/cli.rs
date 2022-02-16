@@ -33,18 +33,19 @@ struct Cli {
     #[clap(long)]
     single: bool,
 
-    /// Still allow consolidation when there are multiple ways to merge records.
+    /// Still allow consolidation when there are multiple ways to match records.
     #[clap(long)]
     multi: bool,
 
     /// Filler string for output cells with otherwise missing values (which would
     /// occur for records missing from some of the input files but present in others).
+    /// If not provided, an empty string will be used.
     #[clap(long)]
     filler: Option<String>,
 
-    /// Threshold value such that if the aggregated edit distance between the values
-    /// in shared columns of two mismatched records does not exceed it, a warning
-    /// should be displayed (0 means no warnings).
+    /// If the combined edit distance between mismatched records' values
+    /// does not exceed this value, a warning is displayed (0 means no warnings);
+    /// only values in columns declared as shared are compared.
     #[clap(long, default_value_t = 0)]
     warn_similar: u32,
 

@@ -118,7 +118,7 @@ impl Sheet {
                 largest - smallest <= count as i32,
                 "Positively indexed columns must precede negatively indexed columns; \
                  got {smallest} ~ {smallest_normalized} <= {largest}",
-                smallest_normalized = Self::normalize_column(*smallest, count)?.unwrap(),
+                smallest_normalized = Self::normalize_column(*smallest, count)?.unwrap() + 1,
             ),
             _ => (),
         }

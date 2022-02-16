@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Solidify allows you to combine CSV/TSV files like so:
+Solidify is a command line tool that allows to combine CSV/TSV files like so:
 
 <table>
 <thead><tr><td>
@@ -51,35 +51,71 @@ The [introductory example](#introduction) can be reproduced using the following 
 solidify -i 1.tsv 2.tsv -o out.tsv --shared 1 --filler N/A
 ```
 
-Here `--shared 1` refers to the fact that the first column is [shared](#shared-columns) between `1.tsv` and `2.tsv` (and it is this column’s contents that are used to identify records across the files).
+Here `--shared 1` refers to the fact that the first column is [shared](#shared-columns) between `1.tsv` and `2.tsv`—and it is this column’s contents that are used to identify and match records across the files.
 
 ### Inputs
 
-You can specify two or more input files to be combined using `-i` or `--inputs`: `-i 1.tsv 2.tsv`, `--inputs 1.tsv 2.tsv 3.tsv`, etc.
+You can specify two or more input files to be combined using `-i` or `--inputs`:
+
+```
+-i 1.tsv 2.tsv
+--inputs a.csv b.csv c.csv
+```
 
 ### Output
 
-You have to specify the output file with `-o` or `--output`: `-o out.tsv`, `--output out.tsv`. To prevent accidental overriding of data, the output path must be different from all the input paths.
+You have to specify the output file with `-o` or `--output`:
+
+```
+-o out.tsv
+--output combined.csv
+```
+
+To prevent accidental overriding of data, the output path must be different from all the input paths.
 
 ### Delimiter
 
 Solidify does not attempt to autodetect delimiters used in your data, so you need to manually specify one (the same delimiter will also be applied to the output). If a delimiter is not provided, the default will be assumed: the tab character (`"	"`). To prevent any mistakes when specifying a delimiter, Solidify will exit with an error if each of the input files appears to have a single column (unless you explicitly [allow](#single-columned-inputs) it).
 
-Only ASCII characters are currently accepted as delimiters. You can provide one with `-d` or `--delimiter`: `-d ,`, `--delimiter "	"`, etc.
+Only ASCII characters are currently accepted as delimiters. You can provide one with `-d` or `--delimiter`:
+
+```
+-d ,
+--delimiter "	"
+```
 
 ### Shared columns
 
-Using `-s`, or `--shared`, you can specify which of the columns of your data are shared between the input files: `-s 1`, `--shared 2 3 8`, etc. These columns will be used to identify which records should be matched and merged.
+Using `-s`, or `--shared`, you can specify which of the columns of your data are shared between input files:
+
+```
+-s 1
+--shared 2 3 8
+```
+
+These columns will be used to identify which records should be matched and merged.
 
 #### Reverse indexing
 
-Negative values refer to columns in reverse order, that is, `-1` refers to the last column, `-2` to the second-to-last, etc. Currently, if there are negative values among the shared column indices, each value needs to be provided separately by repeating the `-s` option: `-s 1 -s -2 -s -1`. To guarantee consistency in output data, no negatively indexed column is allowed to precede a positively indexed one in any of the input files.
+Negative values refer to columns in reverse order, that is, `-1` refers to the last column, `-2` to the second-to-last, etc. Currently, if there are negative values among the shared column indices, each value needs to be provided separately by repeating the `-s` option:
+
+```
+-s 1 -s -2 -s -1
+```
+
+To guarantee consistency of output data, negatively indexed columns are not allowed to precede any positively indexed column in any of the input files.
 
 #### Merge all vs. merge none
 
-If no shared columns are specified, any set of records will be considered matching (given [multiway merge](#multiway-merge) is allowed).
+If no shared columns are specified, any pair of records will be considered matching (given [multiway merge](#multiway-merge) is allowed).
 
-For instance, running `solidify -i 1.tsv 2.tsv -o out.tsv --multi` against the [introductory example](#introduction) would produce the following output:
+For instance, running
+
+```
+solidify -i 1.tsv 2.tsv -o out.tsv --multi
+```
+
+against the [introductory example](#introduction) would produce the following output:
 
 ```
 Country	Population	Country	Area
@@ -88,7 +124,13 @@ India	1.39B	US	9.8M km²
 US	333M	China	9.6M km²
 ```
 
-In contrast, if a special value of `0` is specified as the value of `-s`/`--shared`, no records will be considered matching and merged. Running `solidify -i 1.tsv 2.tsv -o out.tsv -s 0 --filler N/A` will hence produce:
+In contrast, if a special value of `0` is provided as the value of `-s`/`--shared`, no two records will be considered matching. Running
+
+```
+solidify -i 1.tsv 2.tsv -o out.tsv -s 0 --filler N/A
+```
+
+will hence produce:
 
 ```
 Country	Population	N/A	N/A
@@ -107,7 +149,7 @@ To prevent any mistakes when specifying a [delimiter](#delimiter), Solidify will
 
 ### Multiway merge
 
-When data admits multiple ways to match records, Solidify needs to be passed the `--multi` flag to proceed. If the flag is set, records will be matched in the order they appear in their respective input files (see [Merge all vs. merge none](#merge-all-vs-merge-none) for an example).
+When data admits multiple ways to match records, Solidify needs to be passed the `--multi` flag to proceed. If the flag is set, records will be matched in the order they appear in input files (see [Merge all vs. merge none](#merge-all-vs-merge-none) for an example).
 
 ### Filler
 

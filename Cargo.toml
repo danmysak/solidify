@@ -1,7 +1,17 @@
 [package]
 name = "solidify"
 version = "0.1.0"
+authors = ["Danylo Mysak <danmysak@gmail.com>"]
 edition = "2021"
+description = "CSV data consolidator"
+documentation = "https://github.com/danmysak/solidify#readme"
+readme = "README.md"
+homepage = "https://github.com/danmysak/solidify"
+repository = "https://github.com/danmysak/solidify"
+license = "MIT"
+license-file = "LICENSE"
+keywords = ["CSV", "TSV", "merge", "combine", "consolidate"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 anyhow = "1.0"

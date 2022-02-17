@@ -9,6 +9,7 @@ use csv;
 use edit_distance::edit_distance;
 
 use crate::params::Params;
+use crate::strings::countable::Countable;
 use crate::warnings::warn;
 
 use keys::{Key, KeyItem};
@@ -117,13 +118,27 @@ fn match_and_merge<'a>(sheets: &'a [Sheet], params: &'a Params) -> Result<Vec<Ve
                 || row_sets.iter().all(|set| set.len() <= 1)
                 || row_sets.iter().filter(|set| set.len() > 0).count() <= 1,
                 "There are multiple ways to merge records. If this is intended, \
-                 consider passing the {flag} flag. The ambiguous record is: {key}.",
+                 consider passing the {flag} flag. The ambiguous record is:\n{key}",
                 flag = params.names.allow_multi_merge,
             );
             merged.append(&mut merge(&row_sets.iter().zip(sheets).collect::<Vec<_>>(), params));
             if params.warn_unmatched && row_sets.iter().any(|set| set.len() != row_sets[0].len()) {
+                let comparison_key = |(_, set): &(usize, &Vec<&SheetRow>)| set.len();
+                let (max_index, max_set) =
+                    row_sets.iter().enumerate().max_by_key(comparison_key).unwrap();
+                let (min_index, min_set) =
+                    row_sets.iter().enumerate().min_by_key(comparison_key).unwrap();
                 warn(&[
-                    "Unmatched records encountered",
+                    &format!(
+                        "{unmatched_records} encountered \
+                        (found {max_records} in {max_input}, but {min_records} in {min_input}):",
+                        unmatched_records = (max_set.len() - min_set.len())
+                            .count_with("unmatched record"),
+                        max_records = max_set.len().count_with("such record"),
+                        max_input = max_index + 1,
+                        min_records = min_set.len().count_with("such record"),
+                        min_input = min_index + 1,
+                    ),
                     &key.to_string(),
                 ]);
             }

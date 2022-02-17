@@ -80,7 +80,8 @@ impl Sheet {
             };
             ensure!(
                 (0..count).contains(&normalized),
-                "Column {column} is out of bounds (total columns: {count})",
+                "Column {column} is out of bounds (total columns: {count}{note}).",
+                note = if count == 1 { "; did you specify the delimiter correctly?" } else { "" },
             );
             Ok(Some(normalized as usize))
         }

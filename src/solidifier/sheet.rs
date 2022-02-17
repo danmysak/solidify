@@ -117,8 +117,10 @@ impl Sheet {
             (Some(largest), Some(smallest)) => ensure!(
                 largest - smallest <= count as i32,
                 "Positively indexed columns must precede negatively indexed columns; \
-                 got {smallest} ~ {smallest_normalized} <= {largest}",
+                 got {smallest} ~ {smallest_normalized} <= {largest} \
+                 (total columns: {count}{note}).",
                 smallest_normalized = Self::normalize_column(*smallest, count)?.unwrap() + 1,
+                note = if count == 1 { "; did you specify the delimiter correctly?" } else { "" },
             ),
             _ => (),
         }

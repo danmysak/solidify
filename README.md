@@ -86,24 +86,19 @@ Only ASCII characters are currently accepted as delimiters. You can provide one 
 
 ### Shared columns
 
-Using `-s`, or `--shared`, you can specify which of the columns of your data are shared between input files:
+Using `-s`, or `--shared`, you can specify which of the columns of your data are shared between input files (in case there are multiple columns, each value has to be provided separately by repeating the option):
 
 ```
 -s 1
---shared 2 3 8
+--shared 3
+-s 2 -s 3 -s 8
 ```
 
 These columns will be used to identify which records should be matched and merged.
 
 #### Reverse indexing
 
-Negative values refer to columns in reverse order, that is, `-1` refers to the last column, `-2` to the second-to-last, etc. Currently, if there are negative values among the shared column indices, each value needs to be provided separately by repeating the `-s` option:
-
-```
--s 1 -s -2 -s -1
-```
-
-To guarantee consistency of output data, negatively indexed columns are not allowed to precede any positively indexed column in any of the input files.
+Negative values refer to columns in reverse order, that is, `-1` refers to the last column, `-2` to the second-to-last, etc. To guarantee consistency of output data, negatively indexed columns are not allowed to precede any positively indexed column in any of the input files.
 
 #### Merge all vs. merge none
 

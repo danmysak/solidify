@@ -122,20 +122,20 @@ US	333M	China	9.6M km²
 In contrast, if a special value of `0` is provided as the value of `-s`/`--shared`, no two records will be considered matching. Running
 
 ```
-solidify -i 1.tsv 2.tsv -o out.tsv -s 0 --filler N/A
+solidify -i 1.tsv 2.tsv -o out.tsv -s 0 -s 1 --filler N/A
 ```
 
 will hence produce:
 
 ```
-Country	Population	N/A	N/A
-China	1.41B	N/A	N/A
-India	1.39B	N/A	N/A
-US	333M	N/A	N/A
-N/A	N/A	Country	Area
-N/A	N/A	Canada	10M km²
-N/A	N/A	US	9.8M km²
-N/A	N/A	China	9.6M km²
+Country	Population	N/A
+China	1.41B	N/A
+India	1.39B	N/A
+US	333M	N/A
+Country	N/A	Area
+Canada	N/A	10M km²
+US	N/A	9.8M km²
+China	N/A	9.6M km²
 ```
 
 ### Single-columned inputs

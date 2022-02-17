@@ -11,8 +11,8 @@ pub struct RecordId {
 impl Display for RecordId {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(f, "{}", format!(
-            "row #{row} of the input #{input}",
-            row = self.row_index + 1,
+            "record #{record} of input #{input}",
+            record = self.row_index + 1,
             input = self.input_index + 1,
         ).literally())
     }

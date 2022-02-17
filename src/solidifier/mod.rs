@@ -24,7 +24,7 @@ fn read(path: &PathBuf, params: &Params) -> Result<Vec<Vec<String>>> {
     let mut data: Vec<Vec<String>> = vec![];
     for (index, result) in reader.records().enumerate() {
         let record = result.with_context(
-            || format!("Could not process row #{} of {}.", index + 1, path.display())
+            || format!("Could not process record #{} of {}.", index + 1, path.display())
         )?;
         data.push(record.iter().map(String::from).collect());
     }
@@ -130,8 +130,8 @@ fn match_and_merge<'a>(sheets: &'a [Sheet], params: &'a Params) -> Result<Vec<Ve
                     row_sets.iter().enumerate().min_by_key(comparison_key).unwrap();
                 warn(&[
                     &format!(
-                        "{unmatched_records} encountered \
-                        (found {max_records} in {max_input}, but {min_records} in {min_input}):",
+                        "{unmatched_records} encountered (found {max_records} \
+                         in input #{max_input}, but {min_records} in input #{min_input}):",
                         unmatched_records = (max_set.len() - min_set.len())
                             .count_with("unmatched record"),
                         max_records = max_set.len().count_with("such record"),

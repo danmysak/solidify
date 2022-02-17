@@ -93,7 +93,7 @@ impl Sheet {
                 if current_row.len() != first_row.len() {
                     let count_columns = |row: &Vec<String>| row.len().count_with("column");
                     bail!(
-                        "The first row has {first_columns}, but row #{n} has {nth_columns}.",
+                        "The first record has {first_columns}, but record #{n} has {nth_columns}.",
                         first_columns = count_columns(first_row),
                         nth_columns = count_columns(current_row),
                         n = index + 1,

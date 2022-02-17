@@ -9,7 +9,6 @@ readme = "README.md"
 homepage = "https://github.com/danmysak/solidify"
 repository = "https://github.com/danmysak/solidify"
 license = "MIT"
-license-file = "LICENSE"
 keywords = ["CSV", "TSV", "merge", "combine", "consolidate"]
 categories = ["command-line-utilities"]
 
